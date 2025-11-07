@@ -29,12 +29,13 @@ if (process.env.MONGODB_URI) {
 
 // ApiFlash screenshot endpoint 
 app.get('/api/screenshot/:encodedUrl', async (req, res) => {
+  let decodedUrl;
   try {
-    const url = decodeURIComponent(req.params.encodedUrl);
+    decodedUrl = decodeURIComponent(req.params.encodedUrl);
     const apiKey = process.env.APIFLASH_ACCESS_KEY || 'dbd1e0c4aca4477184674678bd988aff';
-    const apiflashUrl = `https://api.apiflash.com/v1/urltoimage?access_key=${apiKey}&url=${encodeURIComponent(url)}&width=1200&height=800&format=png&wait_until=page_loaded&fresh=true&full_page=false`;
+    const apiflashUrl = `https://api.apiflash.com/v1/urltoimage?access_key=${apiKey}&url=${encodeURIComponent(decodedUrl)}&width=1200&height=800&format=png&wait_until=page_loaded&fresh=true&full_page=false`;
     
-    console.log(`📸 Taking ApiFlash screenshot for: ${url}`);
+    console.log(`📸 Taking ApiFlash screenshot for: ${decodedUrl}`);
     
     const response = await axios({
       method: 'GET',
@@ -57,7 +58,8 @@ app.get('/api/screenshot/:encodedUrl', async (req, res) => {
     console.log(`✅ ApiFlash screenshot successful for: ${url}`);
     
   } catch (error) {
-    console.error(`❌ Screenshot failed for ${url}:`, error.message);
+    const safeUrl = decodedUrl || req.params.encodedUrl;
+    console.error(`❌ Screenshot failed for ${safeUrl}:`, error.message);
     
    
     res.redirect('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&h=400&fit=crop&crop=entropy');
