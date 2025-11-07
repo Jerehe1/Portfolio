@@ -12,7 +12,7 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,20 +22,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install client dependencies
-        run: |
-          cd client
-          npm ci
+      - name: Install dependencies
+        working-directory: ./client
+        run: npm install
 
       - name: Build project
-        run: |
-          cd client
-          npm run build
-
-      - name: Debug - Check build output
-        run: |
-          echo "Checking dist directory:"
-          ls -la client/dist || echo "❌ Dist directory not found"
+        working-directory: ./client
+        run: npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -43,7 +36,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './client/dist'
+          path: ./client/dist
 
       - name: Deploy to GitHub Pages
         id: deployment
