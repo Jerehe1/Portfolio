@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState("");
@@ -38,7 +40,7 @@ export default function Admin() {
         ? { username, email, password }
         : { email, password };
 
-      const response = await fetch(`http://localhost:5000/api/auth/${endpoint}`, {
+      const response = await fetch(`${API_URL}/api/auth/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
@@ -65,7 +67,7 @@ export default function Admin() {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/admin/projects", {
+      const response = await fetch(`${API_URL}/api/admin/projects`, {
         headers: getAuthHeaders()
       });
       const data = await response.json();
@@ -78,7 +80,7 @@ export default function Admin() {
 
   const fetchGithubRepos = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/admin/projects/github-repos", {
+      const response = await fetch(`${API_URL}/api/admin/projects/github-repos`, {
         headers: getAuthHeaders()
       });
       const data = await response.json();
@@ -97,8 +99,8 @@ export default function Admin() {
       }
 
       const url = editingProject
-        ? `http://localhost:5000/api/admin/projects/${editingProject._id}`
-        : "http://localhost:5000/api/admin/projects";
+        ? `${API_URL}/api/admin/projects/${editingProject._id}`
+        : `${API_URL}/api/admin/projects`;
       
       const method = editingProject ? "PUT" : "POST";
       
@@ -137,7 +139,7 @@ export default function Admin() {
   const handleDeleteProject = async (id) => {
     if (!confirm("Delete this project setting?")) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/projects/${id}`, {
+      const response = await fetch(`${API_URL}/api/admin/projects/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders()
       });
