@@ -4,19 +4,14 @@ import { authenticate, isAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get GitHub repos for selection - MOVE THIS TO THE TOP
+// Get GitHub repos for admin selection
 router.get('/github-repos', authenticate, isAdmin, async (req, res) => {
   try {
-    console.log('🔍 Fetching GitHub repos for admin...');
     const username = 'Jerehe1';
     const axios = (await import('axios')).default;
     
     const response = await axios.get(`https://api.github.com/users/${username}/repos`, {
-      params: {
-        sort: 'updated',
-        per_page: 50,
-        type: 'owner'
-      },
+      params: { sort: 'updated', per_page: 50, type: 'owner' },
       headers: {
         Authorization: process.env.GITHUB_TOKEN ? `token ${process.env.GITHUB_TOKEN}` : undefined,
         Accept: 'application/vnd.github.v3+json'
@@ -28,48 +23,45 @@ router.get('/github-repos', authenticate, isAdmin, async (req, res) => {
       .map(repo => ({
         name: repo.name,
         description: repo.description || 'No description available',
-        url: repo.html_url,
-        homepage: repo.homepage,
-        topics: repo.topics || [],
         language: repo.language,
-        stars: repo.stargazers_count,
-        updatedAt: repo.updated_at
+        stars: repo.stargazers_count
       }));
 
-    console.log(`✅ Found ${repos.length} GitHub repos`);
     res.json(repos);
   } catch (error) {
-    console.error('❌ GitHub API error:', error.message);
-    res.status(500).json({ error: 'Failed to fetch GitHub repos', details: error.message });
+    res.status(500).json({ error: 'Failed to fetch GitHub repos' });
   }
 });
 
-// Get all project settings 
+// Get all project settings (featured + custom descriptions)
 router.get('/', authenticate, isAdmin, async (req, res) => {
   try {
-    const projectSettings = await Project.find().sort({ order: -1, createdAt: -1 }).lean();
-    res.json(projectSettings);
+    const settings = await Project.find().sort({ createdAt: -1 });
+    res.json(settings);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Create/update project settings
+// Add/update project settings
 router.post('/', authenticate, isAdmin, async (req, res) => {
   try {
     const { repoName } = req.body;
     
+    // Check if settings already exist for this repo
     let project = await Project.findOne({ repoName });
     
     if (project) {
+      // Update existing settings
       Object.assign(project, req.body);
       await project.save();
     } else {
+      // Create new settings
       project = new Project(req.body);
       await project.save();
     }
     
-    res.status(201).json(project);
+    res.json(project);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -81,11 +73,13 @@ router.put('/:id', authenticate, isAdmin, async (req, res) => {
     const project = await Project.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, runValidators: true }
+      { new: true }
     );
+    
     if (!project) {
       return res.status(404).json({ error: 'Project settings not found' });
     }
+    
     res.json(project);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -96,10 +90,12 @@ router.put('/:id', authenticate, isAdmin, async (req, res) => {
 router.delete('/:id', authenticate, isAdmin, async (req, res) => {
   try {
     const project = await Project.findByIdAndDelete(req.params.id);
+    
     if (!project) {
       return res.status(404).json({ error: 'Project settings not found' });
     }
-    res.json({ message: 'Project settings deleted successfully' });
+    
+    res.json({ message: 'Settings removed successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
