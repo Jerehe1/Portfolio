@@ -140,7 +140,10 @@ app.get('/api/projects', async (req, res) => {
           repoName: repo.name,
           title: repo.name,
           description: settings.customDescription || repo.description || 'No description available',
-          technologies: repo.topics || [repo.language || 'Code'].filter(Boolean),
+          technologies: [
+            ...(repo.topics || []), 
+            repo.language
+          ].filter(Boolean).filter((tech, index, arr) => arr.indexOf(tech) === index), 
           github: repo.html_url,
           live: liveUrl,
           image: projectImage,

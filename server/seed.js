@@ -9,20 +9,15 @@ const createTestUser = async () => {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
 
-    // Check if test user already exists
-    const existingUser = await User.findOne({ email: 'admin@test.com' });
-    if (existingUser) {
-      console.log('Test user already exists!');
-      console.log('Email: admin@test.com');
-      console.log('Password: admin123');
-      process.exit(0);
-    }
+    // Delete existing test user first
+    await User.deleteOne({ email: 'admin@test.com' });
+    console.log('Deleted existing test user (if any)');
 
-    // Create test admin user
+    // Create test admin user WITHOUT pre-hashing (let the model do it)
     const testUser = new User({
       username: 'admin',
       email: 'admin@test.com',
-      password: 'admin123',
+      password: 'admin123', // Plain text - the model will hash it
       role: 'admin'
     });
 
@@ -31,6 +26,11 @@ const createTestUser = async () => {
     console.log('\nLogin credentials:');
     console.log('Email: admin@test.com');
     console.log('Password: admin123');
+    
+    // Test the password comparison using the model method
+    const savedUser = await User.findOne({ email: 'admin@test.com' });
+    const passwordTest = await savedUser.comparePassword('admin123');
+    console.log('Password comparison test:', passwordTest ? '✅ WORKS' : '❌ FAILS');
     
     process.exit(0);
   } catch (error) {

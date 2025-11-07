@@ -34,17 +34,23 @@ function Home() {
     <div className="min-h-screen bg-gray-950 text-gray-100 p-8">
       <Header />
 
-      <section className="relative flex justify-center mb-12">
-        <a href="https://github.com/Jerehe1" target="_blank" rel="noopener noreferrer" className="absolute left-[110px] top-0 hidden md:block group">
-          <img
-            src="https://github.com/Jerehe1.png"
-            alt="Jere Helenius"
-            className="w-40 h-40 rounded-full border-4 border-gray-700 object-cover shadow-xl transition-transform group-hover:scale-105"
-            onError={(e) => { e.target.src = '/fallback-profile.png'; }}
-          />
-        </a>
+      <section className="relative flex flex-col lg:flex-row items-center justify-center gap-8 mb-12">
+       
+        <div className="flex-shrink-0">
+          <a href="https://github.com/Jerehe1" target="_blank" rel="noopener noreferrer" className="block group">
+            <img
+              src="https://github.com/Jerehe1.png"
+              alt="Jere Helenius"
+              className="w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 lg:w-44 lg:h-44 xl:w-48 xl:h-48 rounded-full border-4 border-gray-700 object-cover shadow-xl transition-transform group-hover:scale-105"
+              onError={(e) => { e.target.src = '/fallback-profile.png'; }}
+            />
+          </a>
+        </div>
 
-        <SkillsCard />
+        
+        <div className="flex-1 w-full lg:w-auto">
+          <SkillsCard />
+        </div>
       </section>
 
       <div className="max-w-7xl mx-auto space-y-12">
