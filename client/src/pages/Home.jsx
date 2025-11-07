@@ -4,6 +4,8 @@ import SkillsCard from "../components/SkillsCard";
 import ProjectCard from "../components/ProjectCard";
 import Footer from "../components/Footer";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function Home() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,7 +14,7 @@ function Home() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await fetch('${import.meta.env.VITE_API_URL}/api/projects');
+        const response = await fetch(`${API_URL}/api/projects`);
         if (!response.ok) throw new Error('Failed to fetch projects');
         const data = await response.json();
         setProjects(data);
