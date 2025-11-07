@@ -65,14 +65,17 @@ app.get('/api/screenshot/:encodedUrl', async (req, res) => {
 });
 
 // Simplified function to get project image 
-const getProjectImage = (repo, settings, liveUrl) => {
+const getProjectImage = (repo, settings, liveUrl, req) => {
   if (settings.customImage) {
     return settings.customImage;
   }
   
   // ApiFlash for live URLs
   if (liveUrl && !liveUrl.includes('github.com')) {
-    return `http://localhost:${PORT}/api/screenshot/${encodeURIComponent(liveUrl)}`;
+    // Fix: Use the request host instead of hardcoded localhost
+    const protocol = req.protocol || 'https';
+    const host = req.get('host');
+    return `${protocol}://${host}/api/screenshot/${encodeURIComponent(liveUrl)}`;
   }
   
   // Single fallback image for all projects 
@@ -132,7 +135,7 @@ app.get('/api/projects', async (req, res) => {
         }
         
         
-        const projectImage = getProjectImage(repo, settings, liveUrl);
+        const projectImage = getProjectImage(repo, settings, liveUrl, req);
         
         console.log(`🔍 ${repo.name}: Live URL = ${liveUrl}, Image = ${projectImage.substring(0, 50)}...`);
 
