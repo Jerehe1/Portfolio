@@ -8,14 +8,14 @@ export default function Admin() {
   const [isRegister, setIsRegister] = useState(false);
   const [activeTab, setActiveTab] = useState("projects");
   
-  // Projects state
+  
   const [projects, setProjects] = useState([]);
   const [projectForm, setProjectForm] = useState({
-    title: "", description: "", technologies: "", github: "", live: "", image: "", featured: false
+    title: "", description: "", technologies: "", github: "", live: "", image: "", screenshotUrl: "", featured: false
   });
   const [editingProject, setEditingProject] = useState(null);
 
-  // Blogs state
+  
   const [blogs, setBlogs] = useState([]);
   const [blogForm, setBlogForm] = useState({
     title: "", content: "", excerpt: "", tags: "", published: false, coverImage: ""
@@ -64,13 +64,13 @@ export default function Admin() {
     "Authorization": `Bearer ${localStorage.getItem("token")}`
   });
 
-  // Projects Functions
+  
   const fetchProjects = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/projects");
       const data = await response.json();
       console.log("Fetched projects:", data);
-      // Ensure all projects have _id
+      
       const projectsWithIds = data.map(p => ({
         ...p,
         _id: p._id || p.id
@@ -85,7 +85,7 @@ export default function Admin() {
   const handleProjectSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Validation for edit mode
+      
       if (editingProject && !editingProject._id) {
         alert("Error: Invalid project ID");
         return;
@@ -110,7 +110,7 @@ export default function Admin() {
 
       if (response.ok) {
         fetchProjects();
-        setProjectForm({ title: "", description: "", technologies: "", github: "", live: "", image: "", featured: false });
+        setProjectForm({ title: "", description: "", technologies: "", github: "", live: "", image: "", screenshotUrl: "", featured: false });
         setEditingProject(null);
         alert(editingProject ? "Project updated successfully!" : "Project created successfully!");
       } else {
@@ -150,11 +150,12 @@ export default function Admin() {
       github: project.github,
       live: project.live || "",
       image: project.image || "",
+      screenshotUrl: project.screenshotUrl || "",
       featured: project.featured || false
     });
   };
 
-  // Blog Functions
+  
   const fetchBlogs = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/blogs/all", {
@@ -305,7 +306,7 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* Tabs */}
+       
         <div className="flex gap-4 mb-8 border-b border-gray-800">
           <button
             onClick={() => setActiveTab("projects")}
@@ -329,7 +330,7 @@ export default function Admin() {
           </button>
         </div>
 
-        {/* Projects Tab */}
+        
         {activeTab === "projects" && (
           <div className="space-y-8">
             <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
@@ -382,6 +383,34 @@ export default function Admin() {
                   onChange={(e) => setProjectForm({ ...projectForm, image: e.target.value })}
                   className="w-full px-4 py-2 bg-gray-800 text-gray-100 rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500"
                 />
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      placeholder="Screenshot URL (auto-generated from Live URL)"
+                      value={projectForm.screenshotUrl}
+                      onChange={(e) => setProjectForm({ ...projectForm, screenshotUrl: e.target.value })}
+                      className="flex-1 px-4 py-2 bg-gray-800 text-gray-100 rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (projectForm.live && !projectForm.live.includes('github.com')) {
+                          const screenshotUrl = `https://api.screenshotmachine.com?key=demo&url=${encodeURIComponent(projectForm.live)}&dimension=1200x800&format=png`;
+                          setProjectForm({ ...projectForm, screenshotUrl });
+                        } else {
+                          alert('Please enter a valid live URL first');
+                        }
+                      }}
+                      className="px-4 py-2 bg-green-600 rounded-lg hover:bg-green-500 transition text-sm whitespace-nowrap"
+                    >
+                      📸 Generate
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Screenshots auto-generate from Live URL if provided
+                  </p>
+                </div>
                 <label className="flex items-center gap-2 text-gray-300">
                   <input
                     type="checkbox"

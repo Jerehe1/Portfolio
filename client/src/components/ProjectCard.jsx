@@ -6,8 +6,18 @@ export default function ProjectCard({ project }) {
       className="bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-800"
       whileHover={{ scale: 1.02 }}
     >
-      {project.image && (
-        <img src={project.image} alt={project.title} className="w-full h-32 object-cover" />
+      {(project.screenshotUrl || project.image) && (
+        <img 
+          src={project.screenshotUrl || project.image} 
+          alt={project.title} 
+          className="w-full h-32 object-cover"
+          onError={(e) => {
+            
+            if (project.screenshotUrl && e.target.src === project.screenshotUrl) {
+              e.target.src = project.image;
+            }
+          }}
+        />
       )}
       <div className="p-4">
         <h3 className="text-lg font-semibold mb-1">{project.title}</h3>

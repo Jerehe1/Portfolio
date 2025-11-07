@@ -4,34 +4,41 @@ import { authenticate, isAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get all projects (public)
-router.get('/', async (req, res) => {
+// Get all project settings 
+router.get('/', authenticate, isAdmin, async (req, res) => {
   try {
-    const projects = await Project.find().sort({ order: -1, createdAt: -1 }).lean();
-    console.log('Projects from DB:', projects);
-    // Ensure _id is sent properly
-    const projectsWithId = projects.map(p => ({
-      ...p,
-      _id: p._id.toString()
-    }));
-    res.json(projectsWithId);
+    const projectSettings = await Project.find().sort({ order: -1, createdAt: -1 }).lean();
+    res.json(projectSettings);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Create project (admin only)
+
 router.post('/', authenticate, isAdmin, async (req, res) => {
   try {
-    const project = new Project(req.body);
-    await project.save();
+    const { repoName } = req.body;
+    
+    
+    let project = await Project.findOne({ repoName });
+    
+    if (project) {
+      
+      Object.assign(project, req.body);
+      await project.save();
+    } else {
+      
+      project = new Project(req.body);
+      await project.save();
+    }
+    
     res.status(201).json(project);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Update project (admin only)
+// Update project settings
 router.put('/:id', authenticate, isAdmin, async (req, res) => {
   try {
     const project = await Project.findByIdAndUpdate(
@@ -40,7 +47,7 @@ router.put('/:id', authenticate, isAdmin, async (req, res) => {
       { new: true, runValidators: true }
     );
     if (!project) {
-      return res.status(404).json({ error: 'Project not found' });
+      return res.status(404).json({ error: 'Project settings not found' });
     }
     res.json(project);
   } catch (error) {
@@ -48,14 +55,14 @@ router.put('/:id', authenticate, isAdmin, async (req, res) => {
   }
 });
 
-// Delete project (admin only)
+// Delete project settings
 router.delete('/:id', authenticate, isAdmin, async (req, res) => {
   try {
     const project = await Project.findByIdAndDelete(req.params.id);
     if (!project) {
-      return res.status(404).json({ error: 'Project not found' });
+      return res.status(404).json({ error: 'Project settings not found' });
     }
-    res.json({ message: 'Project deleted successfully' });
+    res.json({ message: 'Project settings deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

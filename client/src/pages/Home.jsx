@@ -34,9 +34,7 @@ function Home() {
     <div className="min-h-screen bg-gray-950 text-gray-100 p-8">
       <Header />
 
-      {/* Profile + Skills Section */}
       <section className="relative flex justify-center mb-12">
-        {/* Profile Picture with GitHub Link */}
         <a href="https://github.com/Jerehe1" target="_blank" rel="noopener noreferrer" className="absolute left-[110px] top-0 hidden md:block group">
           <img
             src="https://github.com/Jerehe1.png"
@@ -46,12 +44,10 @@ function Home() {
           />
         </a>
 
-        {/* Skills Card - Centered */}
         <SkillsCard />
       </section>
 
       <div className="max-w-7xl mx-auto space-y-12">
-        {/* Featured Projects */}
         {!loading && !error && featuredProjects.length > 0 && (
           <section>
             <div className="flex items-center gap-3 mb-6">
@@ -61,8 +57,18 @@ function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {featuredProjects.map((p, i) => (
                 <div key={i} className="bg-gray-900 rounded-2xl border-2 border-blue-600/50 overflow-hidden shadow-xl">
-                  {p.image && (
-                    <img src={p.image} alt={p.title} className="w-full h-48 object-cover" />
+                  {(p.screenshotUrl || p.image) && (
+                    <img 
+                      src={p.screenshotUrl || p.image} 
+                      alt={p.title} 
+                      className="w-full h-48 object-cover"
+                      onError={(e) => {
+                        
+                        if (p.screenshotUrl && e.target.src === p.screenshotUrl) {
+                          e.target.src = p.image;
+                        }
+                      }}
+                    />
                   )}
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-3">
@@ -102,7 +108,6 @@ function Home() {
           </section>
         )}
 
-        {/* All Projects */}
         <section>
           <h2 className="text-3xl font-bold mb-6">
             {featuredProjects.length > 0 ? 'More Projects' : 'Projects'}

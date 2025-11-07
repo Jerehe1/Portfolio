@@ -1,34 +1,32 @@
 import mongoose from 'mongoose';
 
 const projectSchema = new mongoose.Schema({
-  title: {
+ 
+  repoName: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
-  description: {
-    type: String,
-    required: true
-  },
-  technologies: [{
-    type: String
-  }],
-  github: {
-    type: String,
-    required: true
-  },
-  live: {
-    type: String
-  },
-  image: {
-    type: String
-  },
+  
   featured: {
     type: Boolean,
     default: false
   },
+  customDescription: {
+    type: String,
+    default: null
+  },
+  customImage: {
+    type: String,
+    default: null
+  },
   order: {
     type: Number,
     default: 0
+  },
+  hidden: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true
