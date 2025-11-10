@@ -27,20 +27,43 @@ if (process.env.MONGODB_URI) {
   console.log('⚠️  No MongoDB URI provided - running without database');
 }
 
-// ApiFlash screenshot endpoint 
+// Screenshot endpoint using ScreenshotOne with simple in-memory caching
 app.get('/api/screenshot/:encodedUrl', async (req, res) => {
   let decodedUrl;
   try {
     decodedUrl = decodeURIComponent(req.params.encodedUrl);
-    const apiKey = process.env.APIFLASH_ACCESS_KEY || 'dbd1e0c4aca4477184674678bd988aff';
-    const apiflashUrl = `https://api.apiflash.com/v1/urltoimage?access_key=${apiKey}&url=${encodeURIComponent(decodedUrl)}&width=1200&height=800&format=png&wait_until=page_loaded&fresh=true&full_page=false`;
-    
-    console.log(`📸 Taking ApiFlash screenshot for: ${decodedUrl}`);
-    
-    const response = await axios({
-      method: 'GET',
-      url: apiflashUrl,
-      responseType: 'stream',
+    const width = Number(req.query.width) || 1200;
+    const height = Number(req.query.height) || 800;
+    const fullPage = req.query.fullPage === 'true';
+
+    // Init cache
+    if (!global._screenshotCache) global._screenshotCache = new Map();
+    const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+    const cacheKey = `${decodedUrl}|${width}|${height}|${fullPage}`;
+
+    // Serve from cache if fresh
+    const cached = global._screenshotCache.get(cacheKey);
+    if (cached && (Date.now() - cached.ts) < CACHE_TTL_MS) {
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=7200');
+      return res.end(cached.buffer);
+    }
+
+    const accessKey = process.env.SCREENSHOTONE_ACCESS_KEY || process.env.SCREENSHOT_API_KEY;
+    if (!accessKey) {
+      console.log(`🖼️ No ScreenshotOne key set; using placeholder for ${decodedUrl}`);
+      return res.redirect('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&h=400&fit=crop&crop=entropy');
+    }
+
+    const requestUrl = `https://api.screenshotone.com/take?access_key=${accessKey}`
+      + `&url=${encodeURIComponent(decodedUrl)}`
+      + `&viewport_width=${width}&viewport_height=${height}`
+      + `&full_page=${fullPage}`
+      + `&format=png`;
+    console.log(`📸 [ScreenshotOne] ${decodedUrl}`);
+
+    const response = await axios.get(requestUrl, {
+      responseType: 'arraybuffer',
       timeout: 25000,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -48,39 +71,28 @@ app.get('/api/screenshot/:encodedUrl', async (req, res) => {
       }
     });
 
-    
+    const buffer = Buffer.from(response.data);
+    global._screenshotCache.set(cacheKey, { buffer, ts: Date.now() });
+
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'public, max-age=7200');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
-    
-    response.data.pipe(res);
-    console.log(`✅ ApiFlash screenshot successful for: ${url}`);
-    
+    res.end(buffer);
   } catch (error) {
     const safeUrl = decodedUrl || req.params.encodedUrl;
     console.error(`❌ Screenshot failed for ${safeUrl}:`, error.message);
-    
-   
     res.redirect('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&h=400&fit=crop&crop=entropy');
   }
 });
 
-// Simplified function to get project image 
+// Simplified function to get project image
+// Prefer custom image; if live URL is non-GitHub, use internal screenshot endpoint; else fallback.
 const getProjectImage = (repo, settings, liveUrl, req) => {
-  if (settings.customImage) {
-    return settings.customImage;
-  }
-  
-  // ApiFlash for live URLs
+  if (settings.customImage) return settings.customImage;
   if (liveUrl && !liveUrl.includes('github.com')) {
-    // Fix: Use the request host instead of hardcoded localhost
-    const protocol = req.protocol || 'https';
+    const protocol = req.protocol || 'http';
     const host = req.get('host');
     return `${protocol}://${host}/api/screenshot/${encodeURIComponent(liveUrl)}`;
   }
-  
-  // Single fallback image for all projects 
   return 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&h=400&fit=crop&crop=entropy';
 };
 

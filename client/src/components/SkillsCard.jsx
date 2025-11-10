@@ -7,7 +7,7 @@ export default function SkillsCard() {
           <span key={i} className="bg-gray-800 px-3 py-1 rounded-lg">{skill}</span>
         ))}
       </div>
-      <p className="text-gray-400 mt-4 text-sm">Continuously learning and improving through real-world projects.</p>
+      <p className="text-gray-400 mt-4 text-sm">Continuously learning and improving.</p>
     </div>
   );
 }

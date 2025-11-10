@@ -13,11 +13,11 @@ const createTestUser = async () => {
     await User.deleteOne({ email: 'admin@test.com' });
     console.log('Deleted existing test user (if any)');
 
-    // Create test admin user WITHOUT pre-hashing (let the model do it)
+    // Create test admin user 
     const testUser = new User({
       username: 'admin',
       email: 'admin@test.com',
-      password: 'admin123', // Plain text - the model will hash it
+      password: 'admin123', 
       role: 'admin'
     });
 

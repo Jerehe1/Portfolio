@@ -8,9 +8,9 @@ export default function Header() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        Jere Helenius — Full Stack Developer
+        Jere Helenius — Developer
       </motion.h1>
-      <p className="text-gray-400">Building dynamic and secure web applications</p>
+      <p className="text-gray-400">Building dynamic applications</p>
     </header>
   );
 }
