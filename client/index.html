@@ -5,6 +5,21 @@
     <link rel="icon" type="image/png" href="https://github.com/Jerehe1.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Portfolio | Jere Helenius</title>
+    <!-- GitHub Pages SPA redirect handler -->
+    <script>
+      // Restore the original URL from query param set by 404.html
+      (function() {
+        const query = window.location.search;
+        if (query && query.startsWith('?p=/')) {
+          const route = query.slice(3).split('&')[0];
+          window.history.replaceState(null, null, 
+            window.location.origin + '/Portfolio/' + route + 
+            window.location.search.replace(/^\?p=\/[^&]*&?/, '?').replace(/^\?$/, '') +
+            window.location.hash
+          );
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -10,7 +10,7 @@ export default function Header() {
       >
         Jere Helenius — Developer
       </motion.h1>
-      <p className="text-gray-400">Building dynamic applications</p>
+      <p className="text-gray-400"></p>
     </header>
   );
 }
