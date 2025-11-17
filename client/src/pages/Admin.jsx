@@ -70,6 +70,12 @@ export default function Admin() {
       const response = await fetch(`${API_URL}/api/admin/projects`, {
         headers: getAuthHeaders()
       });
+      if (response.status === 401) {
+        // Token expired or invalid
+        localStorage.removeItem("token");
+        setIsLoggedIn(false);
+        return;
+      }
       const data = await response.json();
       console.log("Fetched admin projects:", data);
       setProjects(data);
@@ -83,6 +89,11 @@ export default function Admin() {
       const response = await fetch(`${API_URL}/api/admin/projects/github-repos`, {
         headers: getAuthHeaders()
       });
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        setIsLoggedIn(false);
+        return;
+      }
       const data = await response.json();
       setGithubRepos(data);
     } catch (error) {
