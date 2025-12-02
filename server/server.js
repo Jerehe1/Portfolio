@@ -36,16 +36,15 @@ app.get('/api/screenshot/:encodedUrl', async (req, res) => {
     const height = Number(req.query.height) || 800;
     const fullPage = req.query.fullPage === 'true';
 
-    // Init cache
+    // Init cache 
     if (!global._screenshotCache) global._screenshotCache = new Map();
-    const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
     const cacheKey = `${decodedUrl}|${width}|${height}|${fullPage}`;
 
-    // Serve from cache if fresh
+    // Serve from cache if exists 
     const cached = global._screenshotCache.get(cacheKey);
-    if (cached && (Date.now() - cached.ts) < CACHE_TTL_MS) {
+    if (cached) {
       res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Cache-Control', 'public, max-age=7200');
+      res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
       return res.end(cached.buffer);
     }
 
@@ -75,7 +74,7 @@ app.get('/api/screenshot/:encodedUrl', async (req, res) => {
     global._screenshotCache.set(cacheKey, { buffer, ts: Date.now() });
 
     res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Cache-Control', 'public, max-age=7200');
+    res.setHeader('Cache-Control', 'public, max-age=31536000'); 
     res.end(buffer);
   } catch (error) {
     const safeUrl = decodedUrl || req.params.encodedUrl;
